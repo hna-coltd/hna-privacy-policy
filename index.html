@@ -184,7 +184,7 @@
         <strong>Controller / Operator:</strong> HNA iCard Team<br />
         <strong>Contact:</strong> support@hna.id.vn<br />
         <strong>Effective date:</strong> April 19, 2026<br />
-        <strong>Last updated:</strong> April 19, 2026
+        <strong>Last updated:</strong> June 8, 2026
       </div>
 
       <p>
@@ -225,17 +225,22 @@
       <ul>
         <li><strong>Camera access</strong> to scan activation QR codes.</li>
         <li><strong>Bluetooth access</strong> to discover and connect supported RFID BLE readers.</li>
+        <li><strong>NFC access</strong> to read from or write secure commands to supported RFID/NFC tags.</li>
         <li><strong>Photo library access</strong> when you explicitly select an image for QR scanning.</li>
         <li>
           <strong>Local configuration/runtime data</strong> such as server settings, connection history,
-          activation/runtime records, and app preferences stored on your device.
+          activation/runtime records, policy snapshots, cryptographic credentials, and app preferences
+          stored on your device.
         </li>
       </ul>
 
       <h3>2.2 Network Data</h3>
       <p>
-        To provide app functionality, the App may transmit required activation/runtime fields to
-        backend endpoints over secure transport in production environments.
+        To provide app functionality, the App transmits required activation and device-binding
+        information to backend endpoints over secure transport in production environments. Activation
+        requests may include information entered by you, device and application information, QR data,
+        and cryptographic public-key material. Sensitive activation request payloads are encrypted in
+        transit in addition to the production HTTPS transport.
       </p>
       <h3>2.3 Data Inventory</h3>
       <table class="legal-table" aria-label="Data inventory">
@@ -255,16 +260,61 @@
             <td>Processed in app and sent to backend endpoint when needed</td>
           </tr>
           <tr>
+            <td>Activation information entered by the user</td>
+            <td>
+              Bind a license/card to the intended user and support authorized building, parking,
+              customer-service, and activation-review workflows. This may include full name, phone
+              number, apartment code, license plate, vehicle type, vehicle brand, and notes.
+            </td>
+            <td>Required or optional depending on the activation field and customer workflow</td>
+            <td>Sent to and stored by the activation backend</td>
+          </tr>
+          <tr>
+            <td>Device and application information</td>
+            <td>
+              Bind an activation to a device, prevent misuse, troubleshoot issues, and maintain
+              service security. This may include device name, model, operating system, OS version,
+              app version, and a device identifier.
+            </td>
+            <td>Required for activation and security controls</td>
+            <td>Sent to and stored by the activation backend</td>
+          </tr>
+          <tr>
+            <td>Device identifier</td>
+            <td>Device binding, duplicate-activation prevention, security, and support</td>
+            <td>Required for activation</td>
+            <td>
+              Sent to the activation backend. Depending on platform availability, this may be an
+              Android device ID, iOS identifier for vendor, or an app-generated fallback identifier.
+              The App does not directly request access to the device IMEI.
+            </td>
+          </tr>
+          <tr>
             <td>Bluetooth reader identifiers and session state</td>
             <td>Discover, pair, and maintain BLE sessions</td>
             <td>Required for BLE features</td>
             <td>On-device runtime storage</td>
           </tr>
           <tr>
+            <td>NFC/RFID tag interaction data</td>
+            <td>Read or write supported secure card commands</td>
+            <td>Required for NFC features</td>
+            <td>Processed during the NFC session and used for supported card operations</td>
+          </tr>
+          <tr>
             <td>App configuration and connection history</td>
             <td>Persist settings and improve continuity</td>
             <td>Optional/feature dependent</td>
             <td>On-device local storage</td>
+          </tr>
+          <tr>
+            <td>Activation credentials and policy data</td>
+            <td>Enable authenticated, policy-controlled, and offline operation</td>
+            <td>Required after activation</td>
+            <td>
+              Stored on-device using platform secure storage; may include card ID, device token,
+              authentication secret, certificates, cryptographic keys, and policy snapshots
+            </td>
           </tr>
           <tr>
             <td>Operational logs and diagnostics</td>
@@ -278,10 +328,13 @@
       <h2>3. How We Use Information</h2>
       <ul>
         <li>Activate devices through QR-based workflows.</li>
+        <li>Associate a license/card with the activation information and device used during activation.</li>
         <li>Establish and maintain BLE reader sessions.</li>
+        <li>Perform supported NFC/RFID card operations.</li>
         <li>Support policy-controlled offline operation.</li>
         <li>Persist necessary app state and user configuration.</li>
-        <li>Improve reliability, diagnose operational errors, and maintain service security.</li>
+        <li>Prevent duplicate or unauthorized activation, perform revocation checks, and review activation issues.</li>
+        <li>Improve reliability, provide customer support, diagnose operational errors, and maintain service security.</li>
       </ul>
 
       <h2>4. Legal Bases for Processing</h2>
@@ -300,6 +353,12 @@
         our instructions.
       </p>
       <p>
+        Activation records may be made available to the organization or customer that issued or
+        manages the relevant license, and to authorized administrators or support personnel, subject
+        to role, permission, and customer-scope controls. These recipients may use the information
+        for license administration, access or parking operations, activation review, and support.
+      </p>
+      <p>
         We do not use third-party advertising SDKs for behavioral advertising within this App.
       </p>
 
@@ -308,6 +367,12 @@
         On-device data is retained until you uninstall the App or clear app/device data (where
         supported). Server-side data is retained only for as long as needed for legitimate
         operational/legal purposes and then deleted or anonymized according to internal policies.
+      </p>
+      <p>
+        Removing an activated card, clearing app storage, or uninstalling the App removes applicable
+        on-device data but does not automatically delete activation records already stored by the
+        backend. To request access, correction, or deletion of eligible backend records, use the
+        process described in Section 8.1.
       </p>
       <h3>6.1 Retention Schedule</h3>
       <table class="legal-table" aria-label="Retention schedule">
@@ -339,6 +404,16 @@
             <td>As required by applicable law or contract</td>
             <td>Legal/contractual expiry</td>
           </tr>
+          <tr>
+            <td>Activation information and device-binding records</td>
+            <td>For the active license/service lifecycle and any required support, security, legal, or contractual period</td>
+            <td>License/service termination, approved deletion request, or applicable retention expiry</td>
+          </tr>
+          <tr>
+            <td>On-device activation credentials and policy snapshots</td>
+            <td>Until the activated card is removed, app data is cleared, or the App is uninstalled</td>
+            <td>User action or app lifecycle event</td>
+          </tr>
         </tbody>
       </table>
 
@@ -347,6 +422,11 @@
         We implement technical and organizational controls designed to protect data against
         unauthorized access, alteration, disclosure, or destruction. No method of transmission or
         storage is 100% secure, but we continuously improve safeguards appropriate to risk.
+      </p>
+      <p>
+        Controls include secure production transport, encrypted activation request payloads,
+        cryptographic device binding, platform secure storage for activation credentials, and
+        role/permission/customer-scope controls for authorized backend access.
       </p>
 
       <h2>8. Your Rights and Choices</h2>
@@ -360,6 +440,11 @@
       <p>
         You can also manage device permissions at any time in Android/iOS settings. If required
         permissions are denied, some features may not function.
+      </p>
+      <p>
+        You may delete applicable on-device activation and connection information using available
+        controls in the App. This does not automatically remove corresponding backend activation
+        records; contact us to exercise rights relating to backend data.
       </p>
       <h3>8.1 Rights Request Process</h3>
       <div class="process">
